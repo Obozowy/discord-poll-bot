@@ -1,4 +1,5 @@
 import os
+import asyncio
 import discord
 from discord.ext import commands
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -100,21 +101,27 @@ async def create_weekly_polls():
         for channel in guild.text_channels:
             channel_name = channel.name.lower()
             if channel_name in DAYS_CONFIG:
-                await channel.purge(limit=10)
-                title = DAYS_CONFIG[channel_name]
-                view = PollView()
-                embed = view.generate_embed(title)
-                
-                role_mentions = []
-                for role_name in ALLOWED_ROLES:
-                    role_insensitive = discord.utils.find(lambda r: r.name.lower() == role_name.lower(), guild.roles)
-                    if role_insensitive:
-                        role_mentions.append(role_insensitive.mention)
-                
-                ping_text = " ".join(role_mentions) if role_mentions else ""
-                content = f"📢 **Nowa ankieta!** {ping_text}" if ping_text else "📢 **Nowa ankieta!**"
+                try:
+                    await channel.purge(limit=10)
+                    await asyncio.sleep(1) # Bezpieczna przerwa anty-spamowa dla Discorda
+                    
+                    title = DAYS_CONFIG[channel_name]
+                    view = PollView()
+                    embed = view.generate_embed(title)
+                    
+                    role_mentions = []
+                    for role_name in ALLOWED_ROLES:
+                        role_insensitive = discord.utils.find(lambda r: r.name.lower() == role_name.lower(), guild.roles)
+                        if role_insensitive:
+                            role_mentions.append(role_insensitive.mention)
+                    
+                    ping_text = " ".join(role_mentions) if role_mentions else ""
+                    content = f"📢 **Nowa ankieta!** {ping_text}" if ping_text else "📢 **Nowa ankieta!**"
 
-                await channel.send(content=content, embed=embed, view=view)
+                    await channel.send(content=content, embed=embed, view=view)
+                    await asyncio.sleep(1)
+                except Exception as e:
+                    print(f"Błąd na kanale {channel.name}: {e}")
 
 @bot.command()
 async def ankiety(ctx):
