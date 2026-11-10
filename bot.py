@@ -1,3 +1,4 @@
+import os
 import discord
 from discord.ext import commands
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -5,7 +6,7 @@ import pytz
 
 TOKEN = os.getenv("DISCORD_TOKEN")
 
-ALLOWED_ROLES = ["zawodnik", "EU Plejer", "Testy"]
+ALLOWED_ROLES = ["Zawodnik", "EU Plejer", "Testy"]
 DAYS_CONFIG = {
     "poniedziałek": "Poniedziałek - Zbiórka 19:50",
     "wtorek": "Wtorek - Zbiórka 19:50",
@@ -23,10 +24,11 @@ intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 class PollView(discord.ui.View):
-    def __init__(self):
-        super().__init__(timeout=None)
-        self.yes_users = set()
-        self.no_users = set()
+    def check_role(self, interaction: discord.Interaction) -> bool:
+        # Sprawdza rangi niezależnie od tego, czy są pisane z wielkiej czy małej litery
+        user_roles = [r.name.lower() for r in interaction.user.roles]
+        allowed_roles_lower = [role.lower() for role in ALLOWED_ROLES]
+        return any(role in user_roles for role in allowed_roles_lower)
 
     def check_role(self, interaction: discord.Interaction) -> bool:
         user_roles = [r.name for r in interaction.user.roles]
