@@ -9,13 +9,13 @@ TOKEN = os.getenv("DISCORD_TOKEN")
 
 ALLOWED_ROLES = ["Zawodnik", "EU Plejer", "Testy"]
 DAYS_CONFIG = {
-    "poniedziałek": "Poniedziałek - Zbiórka 19:50",
-    "wtorek": "Wtorek - Zbiórka 19:50",
+    "poniedziałek": "Poniedziałek VPG PL + EU - Zbiórka 19:50",
+    "wtorek": "Wtorek VPG EU - Zbiórka 19:50",
     "środa": "Środa - Zbiórka 19:50",
-    "czwartek": "Czwartek - Zbiórka 19:50",
-    "piątek": "Piątek - Zbiórka 19:50",
+    "czwartek": "Czwartek VPG PL + EU - Zbiórka 19:50",
+    "piątek": "Piątek LIVE CUP - Zbiórka 19:50",
     "sobota": "Sobota - Zbiórka 19:50",
-    "niedziela": "Niedziela - Zbiórka 19:50",
+    "niedziela": "Niedziela CPG PL - Zbiórka 19:50",
 }
 
 intents = discord.Intents.default()
@@ -102,8 +102,8 @@ async def create_weekly_polls():
             channel_name = channel.name.lower()
             if channel_name in DAYS_CONFIG:
                 try:
-                    await channel.purge(limit=10)
-                    await asyncio.sleep(2) # Bezpieczna przerwa anty-spamowa
+                    await channel.purge(limit=5)
+                    await asyncio.sleep(2)
                     
                     title = DAYS_CONFIG[channel_name]
                     view = PollView()
@@ -131,6 +131,7 @@ async def ankiety(ctx):
 @bot.event
 async def on_ready():
     print(f"Zalogowano jako {bot.user}")
+    # Harmonogram pozostaje – ankiety zresetują się automatycznie w niedzielę o północy
     scheduler = AsyncIOScheduler(timezone=pytz.timezone("Europe/Warsaw"))
     scheduler.add_job(create_weekly_polls, 'cron', day_of_week='sun', hour=0, minute=0)
     scheduler.start()
