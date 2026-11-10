@@ -7,15 +7,15 @@ import pytz
 
 TOKEN = os.getenv("DISCORD_TOKEN")
 
-ALLOWED_ROLES = ["zawodnik", "EU Plejer", "Testy"]
+ALLOWED_ROLES = ["Zawodnik", "EU Plejer", "Testy"]
 DAYS_CONFIG = {
-    "poniedziałek": "Poniedziałek - Zbiórka 19:50",
-    "wtorek": "Wtorek - Zbiórka 19:50",
+    "poniedziałek": "Poniedziałek VPG PL + VPG EU - Zbiórka 19:50",
+    "wtorek": "Wtorek VPG EU - Zbiórka 19:50",
     "środa": "Środa - Zbiórka 19:50",
-    "czwartek": "Czwartek - Zbiórka 19:50",
-    "piątek": "Piątek - Zbiórka 19:50",
+    "czwartek": "Czwartek VPG PL + VPG EU - Zbiórka 19:50",
+    "piątek": "Piątek LIVE CUP - Zbiórka 19:50",
     "sobota": "Sobota - Zbiórka 19:50",
-    "niedziela": "Niedziela - Zbiórka 19:50",
+    "niedziela": "Niedziela CPG PL - Zbiórka 19:50",
 }
 
 intents = discord.Intents.default()
