@@ -6,7 +6,7 @@ import pytz
 
 TOKEN = os.getenv("DISCORD_TOKEN")
 
-ALLOWED_ROLES = ["Zawodnik", "EU Plejer", "Testy"]
+ALLOWED_ROLES = ["zawodnik", "EU Plejer", "Testy"]
 DAYS_CONFIG = {
     "poniedziałek": "Poniedziałek - Zbiórka 19:50",
     "wtorek": "Wtorek - Zbiórka 19:50",
@@ -105,7 +105,6 @@ async def create_weekly_polls():
                 view = PollView()
                 embed = view.generate_embed(title)
                 
-                # Automatyczne oznaczanie (pingowanie) ról na Discordzie
                 role_mentions = []
                 for role_name in ALLOWED_ROLES:
                     role_insensitive = discord.utils.find(lambda r: r.name.lower() == role_name.lower(), guild.roles)
