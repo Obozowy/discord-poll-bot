@@ -24,24 +24,51 @@ intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 class PollView(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
+        self.yes_users = set()
+        self.no_users = set()
+
     def check_role(self, interaction: discord.Interaction) -> bool:
-        # Sprawdza rangi niezależnie od tego, czy są pisane z wielkiej czy małej litery
         user_roles = [r.name.lower() for r in interaction.user.roles]
         allowed_roles_lower = [role.lower() for role in ALLOWED_ROLES]
         return any(role in user_roles for role in allowed_roles_lower)
 
-    def check_role(self, interaction: discord.Interaction) -> bool:
-        user_roles = [r.name for r in interaction.user.roles]
-        return any(role in user_roles for role in ALLOWED_ROLES)
+    def format_users_by_role(self, users_set):
+        if not users_set:
+            return "Brak"
+        
+        grouped = {role: [] for role in ALLOWED_ROLES}
+        others = []
+
+        for user in users_set:
+            user_role_names = [r.name for r in user.roles]
+            assigned = False
+            for target_role in ALLOWED_ROLES:
+                if any(target_role.lower() == r.lower() for r in user_role_names):
+                    grouped[target_role].append(user.mention)
+                    assigned = True
+                    break
+            if not assigned:
+                others.append(user.mention)
+
+        lines = []
+        for role_name, mentions in grouped.items():
+            if mentions:
+                lines.append(f"**{role_name}:** " + ", ".join(mentions))
+        if others:
+            lines.append(f"**Inni:** " + ", ".join(others))
+
+        return "\n".join(lines) if lines else "Brak"
 
     def generate_embed(self, title: str):
         embed = discord.Embed(title=f"📋 Ankieta: {title}", color=discord.Color.blue())
         
-        yes_list = "\n".join([u.mention for u in self.yes_users]) if self.yes_users else "Brak"
-        no_list = "\n".join([u.mention for u in self.no_users]) if self.no_users else "Brak"
+        yes_content = self.format_users_by_role(self.yes_users)
+        no_content = self.format_users_by_role(self.no_users)
         
-        embed.add_field(name=f"✅ Obecni ({len(self.yes_users)})", value=yes_list, inline=False)
-        embed.add_field(name=f"❌ Nieobecni ({len(self.no_users)})", value=no_list, inline=False)
+        embed.add_field(name=f"✅ Obecni ({len(self.yes_users)})", value=yes_content, inline=False)
+        embed.add_field(name=f"❌ Nieobecni ({len(self.no_users)})", value=no_content, inline=False)
         return embed
 
     @discord.ui.button(label="Tak", style=discord.ButtonStyle.green, custom_id="poll_yes")
@@ -77,12 +104,22 @@ async def create_weekly_polls():
                 title = DAYS_CONFIG[channel_name]
                 view = PollView()
                 embed = view.generate_embed(title)
-                await channel.send(embed=embed, view=view)
+                
+                # Automatyczne oznaczanie (pingowanie) ról na Discordzie
+                role_mentions = []
+                for role_name in ALLOWED_ROLES:
+                    role_insensitive = discord.utils.find(lambda r: r.name.lower() == role_name.lower(), guild.roles)
+                    if role_insensitive:
+                        role_mentions.append(role_insensitive.mention)
+                
+                ping_text = " ".join(role_mentions) if role_mentions else ""
+                content = f"📢 **Nowa ankieta!** {ping_text}" if ping_text else "📢 **Nowa ankieta!**"
 
-# Komenda ręczna: wpisz !ankiety na Discordzie, aby od razu wygenerować ankiety
+                await channel.send(content=content, embed=embed, view=view)
+
 @bot.command()
 async def ankiety(ctx):
-    await ctx.send("Tworzę nowe ankiety...")
+    await ctx.send("Tworzę nowe ankiety z podziałem na rangi...")
     await create_weekly_polls()
 
 @bot.event
