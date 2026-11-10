@@ -9,13 +9,13 @@ TOKEN = os.getenv("DISCORD_TOKEN")
 
 ALLOWED_ROLES = ["Zawodnik", "EU Plejer", "Testy"]
 DAYS_CONFIG = {
-    "poniedziałek": "Poniedziałek VPG PL + VPG EU - Zbiórka 19:50",
-    "wtorek": "Wtorek VPG EU - Zbiórka 19:50",
+    "poniedziałek": "Poniedziałek - Zbiórka 19:50",
+    "wtorek": "Wtorek - Zbiórka 19:50",
     "środa": "Środa - Zbiórka 19:50",
-    "czwartek": "Czwartek VPG PL + VPG EU - Zbiórka 19:50",
-    "piątek": "Piątek LIVE CUP - Zbiórka 19:50",
+    "czwartek": "Czwartek - Zbiórka 19:50",
+    "piątek": "Piątek - Zbiórka 19:50",
     "sobota": "Sobota - Zbiórka 19:50",
-    "niedziela": "Niedziela CPG PL - Zbiórka 19:50",
+    "niedziela": "Niedziela - Zbiórka 19:50",
 }
 
 intents = discord.Intents.default()
@@ -103,7 +103,7 @@ async def create_weekly_polls():
             if channel_name in DAYS_CONFIG:
                 try:
                     await channel.purge(limit=10)
-                    await asyncio.sleep(1) # Bezpieczna przerwa anty-spamowa dla Discorda
+                    await asyncio.sleep(2) # Bezpieczna przerwa anty-spamowa
                     
                     title = DAYS_CONFIG[channel_name]
                     view = PollView()
@@ -119,7 +119,7 @@ async def create_weekly_polls():
                     content = f"📢 **Nowa ankieta!** {ping_text}" if ping_text else "📢 **Nowa ankieta!**"
 
                     await channel.send(content=content, embed=embed, view=view)
-                    await asyncio.sleep(1)
+                    await asyncio.sleep(2)
                 except Exception as e:
                     print(f"Błąd na kanale {channel.name}: {e}")
 
