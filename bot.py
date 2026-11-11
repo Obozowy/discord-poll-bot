@@ -7,6 +7,7 @@ import pytz
 
 TOKEN = os.getenv("DISCORD_TOKEN")
 
+# Poprawiona nazwa rangi na "Zawodnik" (z dużą literą)
 ALLOWED_ROLES = ["Zawodnik", "EU Plejer", "Testy"]
 DAYS_CONFIG = {
     "poniedziałek": "Poniedziałek - Zbiórka 19:50",
@@ -130,10 +131,11 @@ async def ankiety(interaction: discord.Interaction):
 
 @bot.event
 async def on_ready():
-    # Synchronizacja globalna, która zarejestruje komendę dla wszystkich serwerów bota
+    MY_GUILD = discord.Object(id=813517961624158249)
     try:
-        synced = await bot.tree.sync()
-        print(f"Zsynchronizowano pomyślnie {len(synced)} komend(y) globalnie.")
+        bot.tree.copy_global_to(guild=MY_GUILD)
+        synced = await bot.tree.sync(guild=MY_GUILD)
+        print(f"Zsynchronizowano pomyślnie {len(synced)} komend(y) dla serwera.")
     except Exception as e:
         print(e)
         
