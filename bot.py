@@ -10,7 +10,13 @@ import pytz
 
 TOKEN = os.getenv("DISCORD_TOKEN")
 
-ALLOWED_ROLES = ["Zawodnik", "EU Plejer", "Testy"]
+ALLOWED_ROLES = [
+    "Zawodnik",
+    "EU Plejer",
+    "Testy",
+    "Kapitan",
+    "Asystent"
+]
 
 DAYS_CONFIG = {
     "poniedziałek": 0,
@@ -37,21 +43,26 @@ class PollView(discord.ui.View):
         self.yes_users = set()
         self.no_users = set()
 
-    def check_role(self, interaction: discord.Interaction) -> bool:
-        user_roles = [
-            role.name.lower()
-            for role in interaction.user.roles
-        ]
+def check_role(self, interaction: discord.Interaction) -> bool:
 
-        allowed_roles = [
-            role.lower()
-            for role in ALLOWED_ROLES
-        ]
+    # Właściciel serwera zawsze może głosować
+    if interaction.guild and interaction.user.id == interaction.guild.owner_id:
+        return True
 
-        return any(
-            role in user_roles
-            for role in allowed_roles
-        )
+    user_roles = [
+        role.name.lower()
+        for role in interaction.user.roles
+    ]
+
+    allowed_roles = [
+        role.lower()
+        for role in ALLOWED_ROLES
+    ]
+
+    return any(
+        role in user_roles
+        for role in allowed_roles
+    )
 
     def format_users_by_role(self, users_set):
         if not users_set:
