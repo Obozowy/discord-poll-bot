@@ -1,5 +1,6 @@
 import os
 import asyncio
+from datetime import datetime, timedelta
 import discord
 from discord.ext import commands
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -9,13 +10,13 @@ TOKEN = os.getenv("DISCORD_TOKEN")
 
 ALLOWED_ROLES = ["Zawodnik", "EU Plejer", "Testy"]
 DAYS_CONFIG = {
-    "poniedziałek": "Poniedziałek - Zbiórka 19:50",
-    "wtorek": "Wtorek - Zbiórka 19:50",
-    "środa": "Środa - Zbiórka 19:50",
-    "czwartek": "Czwartek - Zbiórka 19:50",
-    "piątek": "Piątek - Zbiórka 19:50",
-    "sobota": "Sobota - Zbiórka 19:50",
-    "niedziela": "Niedziela - Zbiórka 19:50",
+    "poniedziałek": 0,
+    "wtorek": 1,
+    "środa": 2,
+    "czwartek": 3,
+    "piątek": 4,
+    "sobota": 5,
+    "niedziela": 6,
 }
 
 intents = discord.Intents.default()
@@ -97,6 +98,10 @@ class PollView(discord.ui.View):
         await interaction.response.edit_message(embed=embed, view=self)
 
 async def create_weekly_polls():
+    tz = pytz.timezone("Europe/Warsaw")
+    now = datetime.now(tz)
+    start_of_week = now - timedelta(days=now.weekday())
+
     for guild in bot.guilds:
         for channel in guild.text_channels:
             channel_name = channel.name.lower()
@@ -105,7 +110,13 @@ async def create_weekly_polls():
                     await channel.purge(limit=5)
                     await asyncio.sleep(2)
                     
-                    title = DAYS_CONFIG[channel_name]
+                    day_offset = DAYS_CONFIG[channel_name]
+                    target_date = start_of_week + timedelta(days=day_offset)
+                    date_str = target_date.strftime("%d.%m.%Y")
+                    
+                    capitalized_day = channel_name.capitalize()
+                    title = f"{capitalized_day} ({date_str}) - Zbiórka 19:50"
+                    
                     view = PollView()
                     embed = view.generate_embed(title)
                     
@@ -123,9 +134,9 @@ async def create_weekly_polls():
                 except Exception as e:
                     print(f"Błąd na kanale {channel.name}: {e}")
 
-@bot.tree.command(name="ankiety", description="Tworzy nowe ankiety na kanałach z dniami tygodnia")
+@bot.tree.command(name="ankiety", description="Tworzy nowe ankiety z podziałem na rangi i datami")
 async def ankiety(interaction: discord.Interaction):
-    await interaction.response.send_message("Tworzę nowe ankiety z podziałem na rangi...", ephemeral=True)
+    await interaction.response.send_message("Tworzę nowe ankiety z aktualnymi datami...", ephemeral=True)
     await create_weekly_polls()
 
 @bot.event
