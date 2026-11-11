@@ -314,6 +314,7 @@ async def ankiety(interaction: discord.Interaction):
     await create_weekly_polls()
 
 
+
 @bot.event
 async def on_ready():
 
@@ -326,6 +327,11 @@ async def on_ready():
 
     except Exception as e:
         print(f"Błąd synchronizacji: {e}")
+
+    # Rejestracja przycisków ankiet
+    if not getattr(bot, "poll_view_registered", False):
+        bot.add_view(PollView())
+        bot.poll_view_registered = True
 
     print(f"Zalogowano jako {bot.user}")
 
@@ -347,6 +353,7 @@ async def on_ready():
         print(
             "Harmonogram ankiet uruchomiony."
         )
+
 
 
 if not TOKEN:
