@@ -14,7 +14,7 @@ ALLOWED_ROLES = [
     "Zawodnik",
     "EU Plejer",
     "Testy",
-    "Kapitan",
+    "KAPITAN",
     "Asystent"
 ]
 
@@ -50,12 +50,12 @@ def check_role(self, interaction: discord.Interaction) -> bool:
         return True
 
     user_roles = [
-        role.name.lower()
+        role.name.strip().lower()
         for role in interaction.user.roles
     ]
 
     allowed_roles = [
-        role.lower()
+        role.strip().lower()
         for role in ALLOWED_ROLES
     ]
 
