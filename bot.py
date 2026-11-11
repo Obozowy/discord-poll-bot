@@ -8,9 +8,13 @@ from discord.ext import commands
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import pytz
 
+
+# =========================
+# KONFIGURACJA
+# =========================
+
 TOKEN = os.getenv("DISCORD_TOKEN")
 
-# Nazwy rang – używane do wyświetlania i oznaczania rang
 ALLOWED_ROLES = [
     "Zawodnik",
     "EU Plejer",
@@ -19,7 +23,6 @@ ALLOWED_ROLES = [
     "Asystent"
 ]
 
-# ID rang – używane do sprawdzania, kto może głosować
 ALLOWED_ROLE_IDS = [
     1327076489048490025,  # KAPITAN
     1470703435589353472,  # Asystent
@@ -40,12 +43,24 @@ DAYS_CONFIG = {
 
 TZ = pytz.timezone("Europe/Warsaw")
 
+
+# =========================
+# BOT
+# =========================
+
 intents = discord.Intents.default()
 intents.members = True
 intents.message_content = True
 
-bot = commands.Bot(command_prefix="!", intents=intents)
+bot = commands.Bot(
+    command_prefix="!",
+    intents=intents
+)
 
+
+# =========================
+# ANKIETY
+# =========================
 
 class PollView(discord.ui.View):
 
@@ -54,6 +69,7 @@ class PollView(discord.ui.View):
         self.yes_users = set()
         self.no_users = set()
 
+    # Sprawdzanie uprawnień do głosowania
     def check_role(self, interaction: discord.Interaction) -> bool:
 
         # Właściciel serwera zawsze może głosować
@@ -63,16 +79,19 @@ class PollView(discord.ui.View):
         ):
             return True
 
-        # Sprawdzanie ID rang użytkownika
+        # Pobieranie ID rang użytkownika
         user_role_ids = [
-            role.id for role in interaction.user.roles
+            role.id
+            for role in interaction.user.roles
         ]
 
+        # Sprawdzanie, czy użytkownik ma jedną z dozwolonych rang
         return any(
             role_id in user_role_ids
             for role_id in ALLOWED_ROLE_IDS
         )
 
+    # Grupowanie użytkowników według rang
     def format_users_by_role(self, users_set):
 
         if not users_set:
@@ -86,17 +105,17 @@ class PollView(discord.ui.View):
         others = []
 
         for user in users_set:
+
             user_role_names = [
-                role.name for role in user.roles
+                role.name.strip().lower()
+                for role in user.roles
             ]
 
             assigned = False
 
             for target_role in ALLOWED_ROLES:
-                if any(
-                    target_role.lower() == role.lower()
-                    for role in user_role_names
-                ):
+
+                if target_role.strip().lower() in user_role_names:
                     grouped[target_role].append(user.mention)
                     assigned = True
                     break
@@ -107,6 +126,7 @@ class PollView(discord.ui.View):
         lines = []
 
         for role_name, mentions in grouped.items():
+
             if mentions:
                 lines.append(
                     f"**{role_name}:** " + ", ".join(mentions)
@@ -119,6 +139,7 @@ class PollView(discord.ui.View):
 
         return "\n".join(lines) if lines else "Brak"
 
+    # Tworzenie wyglądu ankiety
     def generate_embed(self, title: str):
 
         embed = discord.Embed(
@@ -148,6 +169,7 @@ class PollView(discord.ui.View):
 
         return embed
 
+    # PRZYCISK TAK
     @discord.ui.button(
         label="Tak",
         style=discord.ButtonStyle.green,
@@ -180,6 +202,7 @@ class PollView(discord.ui.View):
             view=self
         )
 
+    # PRZYCISK NIE
     @discord.ui.button(
         label="Nie",
         style=discord.ButtonStyle.red,
@@ -213,11 +236,11 @@ class PollView(discord.ui.View):
         )
 
 
+# =========================
+# DATY
+# =========================
+
 def get_next_date(now, target_weekday):
-    """
-    Zwraca najbliższą datę danego dnia tygodnia.
-    Jeśli dzisiaj jest szukany dzień, zwraca dzisiejszą datę.
-    """
 
     days_ahead = (
         target_weekday - now.weekday()
@@ -226,11 +249,16 @@ def get_next_date(now, target_weekday):
     return now + timedelta(days=days_ahead)
 
 
+# =========================
+# TWORZENIE ANKIET
+# =========================
+
 async def create_weekly_polls():
 
     now = datetime.now(TZ)
 
     for guild in bot.guilds:
+
         for channel in guild.text_channels:
 
             channel_name = channel.name.lower().strip()
@@ -239,6 +267,7 @@ async def create_weekly_polls():
                 continue
 
             try:
+
                 target_weekday = DAYS_CONFIG[channel_name]
 
                 poll_date = get_next_date(
@@ -258,6 +287,7 @@ async def create_weekly_polls():
                 # Usuwanie poprzednich wiadomości
                 try:
                     await channel.purge(limit=5)
+
                 except discord.Forbidden:
                     print(
                         f"Brak uprawnień do czyszczenia: "
@@ -273,6 +303,7 @@ async def create_weekly_polls():
                 role_mentions = []
 
                 for role_name in ALLOWED_ROLES:
+
                     role = discord.utils.find(
                         lambda r: (
                             r.name.lower() == role_name.lower()
@@ -306,10 +337,15 @@ async def create_weekly_polls():
                 await asyncio.sleep(1)
 
             except Exception as e:
+
                 print(
                     f"Błąd na kanale {channel.name}: {e}"
                 )
 
+
+# =========================
+# KOMENDA /ANKIETY
+# =========================
 
 @bot.tree.command(
     name="ankiety",
@@ -325,10 +361,15 @@ async def ankiety(interaction: discord.Interaction):
     await create_weekly_polls()
 
 
+# =========================
+# URUCHOMIENIE
+# =========================
+
 @bot.event
 async def on_ready():
 
     try:
+
         synced = await bot.tree.sync()
 
         print(
@@ -336,11 +377,15 @@ async def on_ready():
         )
 
     except Exception as e:
-        print(f"Błąd synchronizacji: {e}")
+
+        print(
+            f"Błąd synchronizacji: {e}"
+        )
 
     print(f"Zalogowano jako {bot.user}")
 
     if not hasattr(bot, "scheduler"):
+
         bot.scheduler = AsyncIOScheduler(
             timezone=TZ
         )
@@ -360,9 +405,19 @@ async def on_ready():
         )
 
 
+# =========================
+# SPRAWDZENIE TOKENA
+# =========================
+
 if not TOKEN:
+
     raise ValueError(
         "Nie znaleziono zmiennej DISCORD_TOKEN!"
     )
+
+
+# =========================
+# START BOTA
+# =========================
 
 bot.run(TOKEN)
