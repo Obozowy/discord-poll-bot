@@ -7,7 +7,7 @@ import pytz
 
 TOKEN = os.getenv("DISCORD_TOKEN")
 
-ALLOWED_ROLES = ["zawodnik", "EU Plejer", "Testy"]
+ALLOWED_ROLES = ["Zawodnik", "EU Plejer", "Testy"]
 DAYS_CONFIG = {
     "poniedziałek": "Poniedziałek - Zbiórka 19:50",
     "wtorek": "Wtorek - Zbiórka 19:50",
@@ -22,19 +22,7 @@ intents = discord.Intents.default()
 intents.members = True
 intents.message_content = True
 
-class PollBot(commands.Bot):
-    def __init__(self):
-        super().__init__(command_prefix="!", intents=intents)
-
-    async def setup_hook(self):
-        # Wklej tutaj skopiowane ID serwera wewnątrz cudzysłowu lub jako int!
-        MY_GUILD = discord.Object(id=813517961624158249)
-        
-        self.tree.copy_global_to(guild=MY_GUILD)
-        await self.tree.sync(guild=MY_GUILD)
-        print("Zsynchronizowano komendy Slash natychmiastowo dla serwera!")
-
-bot = PollBot()
+bot = commands.Bot(command_prefix="!", intents=intents)
 
 class PollView(discord.ui.View):
     def __init__(self):
@@ -142,7 +130,15 @@ async def ankiety(interaction: discord.Interaction):
 
 @bot.event
 async def on_ready():
+    # Synchronizacja globalna, która zarejestruje komendę dla wszystkich serwerów bota
+    try:
+        synced = await bot.tree.sync()
+        print(f"Zsynchronizowano pomyślnie {len(synced)} komend(y) globalnie.")
+    except Exception as e:
+        print(e)
+        
     print(f"Zalogowano pomyślnie jako {bot.user}")
+    
     scheduler = AsyncIOScheduler(timezone=pytz.timezone("Europe/Warsaw"))
     scheduler.add_job(create_weekly_polls, 'cron', day_of_week='sun', hour=0, minute=0)
     scheduler.start()
