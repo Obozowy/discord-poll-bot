@@ -7,7 +7,6 @@ import pytz
 
 TOKEN = os.getenv("DISCORD_TOKEN")
 
-# Poprawiona nazwa rangi na "Zawodnik" (z dużą literą)
 ALLOWED_ROLES = ["Zawodnik", "EU Plejer", "Testy"]
 DAYS_CONFIG = {
     "poniedziałek": "Poniedziałek - Zbiórka 19:50",
