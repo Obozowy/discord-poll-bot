@@ -98,6 +98,7 @@ class PollView(discord.ui.View):
         await interaction.response.edit_message(embed=embed, view=self)
 
 async def create_weekly_polls():
+    print("--- URUCHOMIONO GENEROWANIE ANKIET ---")
     tz = pytz.timezone("Europe/Warsaw")
     now = datetime.now(tz)
     start_of_week = now - timedelta(days=now.weekday())
@@ -106,6 +107,7 @@ async def create_weekly_polls():
         for channel in guild.text_channels:
             channel_name = channel.name.lower()
             if channel_name in DAYS_CONFIG:
+                print(f"Znaleziono pasujący kanał: {channel_name}")
                 try:
                     await channel.purge(limit=5)
                     await asyncio.sleep(2)
@@ -116,6 +118,7 @@ async def create_weekly_polls():
                     
                     capitalized_day = channel_name.capitalize()
                     title = f"{capitalized_day} ({date_str}) - Zbiórka 19:50"
+                    print(f"Wygenerowany tytuł dla {channel_name}: {title}")
                     
                     view = PollView()
                     embed = view.generate_embed(title)
@@ -132,7 +135,7 @@ async def create_weekly_polls():
                     await channel.send(content=content, embed=embed, view=view)
                     await asyncio.sleep(2)
                 except Exception as e:
-                    print(f"Błąd na kanale {channel.name}: {e}")
+                    print(f"BŁĄD na kanale {channel.name}: {e}")
 
 @bot.tree.command(name="ankiety", description="Tworzy nowe ankiety z podziałem na rangi i datami")
 async def ankiety(interaction: discord.Interaction):
