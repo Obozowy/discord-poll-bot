@@ -98,7 +98,6 @@ class PollView(discord.ui.View):
         await interaction.response.edit_message(embed=embed, view=self)
 
 async def create_weekly_polls():
-    print(">>> [DZIAŁA] Rozpoczęto tworzenie ankiet z datami!")
     tz = pytz.timezone("Europe/Warsaw")
     now = datetime.now(tz)
     start_of_week = now - timedelta(days=now.weekday())
@@ -107,9 +106,12 @@ async def create_weekly_polls():
         for channel in guild.text_channels:
             channel_name = channel.name.lower()
             if channel_name in DAYS_CONFIG:
-                print(f"Przetwarzam kanał: {channel_name}")
                 try:
-                    await channel.purge(limit=5)
+                    try:
+                        await channel.purge(limit=5)
+                    except Exception:
+                        pass
+                    
                     await asyncio.sleep(1)
                     
                     day_offset = DAYS_CONFIG[channel_name]
@@ -118,7 +120,6 @@ async def create_weekly_polls():
                     
                     capitalized_day = channel_name.capitalize()
                     title = f"{capitalized_day} ({date_str}) - Zbiórka 19:50"
-                    print(f"-> Tytuł: {title}")
                     
                     view = PollView()
                     embed = view.generate_embed(title)
@@ -135,11 +136,10 @@ async def create_weekly_polls():
                     await channel.send(content=content, embed=embed, view=view)
                     await asyncio.sleep(1)
                 except Exception as e:
-                    print(f"BŁĄD na kanale {channel.name}: {e}")
+                    print(f"Błąd na kanale {channel.name}: {e}")
 
 @bot.tree.command(name="ankiety", description="Tworzy nowe ankiety z podziałem na rangi i datami")
 async def ankiety(interaction: discord.Interaction):
-    print(">>> [KOMENDA] Wywołano komendę /ankiety przez użytkownika!")
     await interaction.response.send_message("Tworzę nowe ankiety z aktualnymi datami...", ephemeral=True)
     await create_weekly_polls()
 
