@@ -18,6 +18,14 @@ ALLOWED_ROLES = [
     "Asystent"
 ]
 
+ALLOWED_ROLE_IDS = [
+    1327076489048490025,  # KAPITAN
+    1470703435589353472,  # Asystent
+    1327076272920068177,  # Zawodnik
+    1569732469408661675,  # EU Plejer
+    1327076329257959445   # Testy
+]
+
 DAYS_CONFIG = {
     "poniedziałek": 0,
     "wtorek": 1,
@@ -43,25 +51,22 @@ class PollView(discord.ui.View):
         self.yes_users = set()
         self.no_users = set()
 
+
 def check_role(self, interaction: discord.Interaction) -> bool:
 
     # Właściciel serwera zawsze może głosować
     if interaction.guild and interaction.user.id == interaction.guild.owner_id:
         return True
 
-    user_roles = [
-        role.name.strip().lower()
-        for role in interaction.user.roles
+    # Pobieranie ID rang użytkownika
+    user_role_ids = [
+        role.id for role in interaction.user.roles
     ]
 
-    allowed_roles = [
-        role.strip().lower()
-        for role in ALLOWED_ROLES
-    ]
-
+    # Sprawdzanie dozwolonych rang
     return any(
-        role in user_roles
-        for role in allowed_roles
+        role_id in user_role_ids
+        for role_id in ALLOWED_ROLE_IDS
     )
 
     def format_users_by_role(self, users_set):
