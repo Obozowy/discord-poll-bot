@@ -27,9 +27,12 @@ class PollBot(commands.Bot):
         super().__init__(command_prefix="!", intents=intents)
 
     async def setup_hook(self):
-        # Synchronizacja komend ukośnika (Slash Commands) z Discordem
-        await self.tree.sync()
-        print("Zsynchronizowano komendy Slash (/)")
+        # Wklej tutaj skopiowane ID serwera wewnątrz cudzysłowu lub jako int!
+        MY_GUILD = discord.Object(id=813517961624158249)
+        
+        self.tree.copy_global_to(guild=MY_GUILD)
+        await self.tree.sync(guild=MY_GUILD)
+        print("Zsynchronizowano komendy Slash natychmiastowo dla serwera!")
 
 bot = PollBot()
 
