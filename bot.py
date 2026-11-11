@@ -163,10 +163,12 @@ def check_role(self, interaction: discord.Interaction) -> bool:
 
         embed = self.generate_embed(title)
 
-        await interaction.response.edit_message(
-            embed=embed,
-            view=self
-        )
+await interaction.response.defer()
+
+await interaction.message.edit(
+    embed=embed,
+    view=self
+)
 
     @discord.ui.button(
         label="Nie",
@@ -179,10 +181,12 @@ def check_role(self, interaction: discord.Interaction) -> bool:
         button: discord.ui.Button
     ):
         if not self.check_role(interaction):
-            await interaction.response.send_message(
-                "Nie masz odpowiedniej rangi do głosowania!",
-                ephemeral=True
-            )
+await interaction.response.defer()
+
+await interaction.message.edit(
+    embed=embed,
+    view=self
+)
             return
 
         self.yes_users.discard(interaction.user)
