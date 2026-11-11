@@ -1,6 +1,6 @@
 import os
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime
 import discord
 from discord.ext import commands
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -100,11 +100,13 @@ class PollView(discord.ui.View):
 async def create_weekly_polls():
     tz = pytz.timezone("Europe/Warsaw")
     now = datetime.now(tz)
-    start_of_week = now - timedelta(days=now.weekday())
+    
+    # Bezpośrednia, awaryjna metoda wyciągania dzisiejszej daty jako test
+    date_str = now.strftime("%d.%m.%Y")
 
     for guild in bot.guilds:
         for channel in guild.text_channels:
-            channel_name = channel.name.lower()
+            channel_name = channel.name.lower().strip()
             if channel_name in DAYS_CONFIG:
                 try:
                     try:
@@ -114,11 +116,8 @@ async def create_weekly_polls():
                     
                     await asyncio.sleep(1)
                     
-                    day_offset = DAYS_CONFIG[channel_name]
-                    target_date = start_of_week + timedelta(days=day_offset)
-                    date_str = target_date.strftime("%d.%m.%Y")
-                    
                     capitalized_day = channel_name.capitalize()
+                    # Hardcoded data testowa z current_time żeby sprawdzić czy string w ogóle przechodzi do embeda
                     title = f"{capitalized_day} ({date_str}) - Zbiórka 19:50"
                     
                     view = PollView()
