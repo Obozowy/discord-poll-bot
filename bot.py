@@ -98,7 +98,7 @@ class PollView(discord.ui.View):
         await interaction.response.edit_message(embed=embed, view=self)
 
 async def create_weekly_polls():
-    print("--- URUCHOMIONO GENEROWANIE ANKIET ---")
+    print(">>> [DZIAŁA] Rozpoczęto tworzenie ankiet z datami!")
     tz = pytz.timezone("Europe/Warsaw")
     now = datetime.now(tz)
     start_of_week = now - timedelta(days=now.weekday())
@@ -107,10 +107,10 @@ async def create_weekly_polls():
         for channel in guild.text_channels:
             channel_name = channel.name.lower()
             if channel_name in DAYS_CONFIG:
-                print(f"Znaleziono pasujący kanał: {channel_name}")
+                print(f"Przetwarzam kanał: {channel_name}")
                 try:
                     await channel.purge(limit=5)
-                    await asyncio.sleep(2)
+                    await asyncio.sleep(1)
                     
                     day_offset = DAYS_CONFIG[channel_name]
                     target_date = start_of_week + timedelta(days=day_offset)
@@ -118,7 +118,7 @@ async def create_weekly_polls():
                     
                     capitalized_day = channel_name.capitalize()
                     title = f"{capitalized_day} ({date_str}) - Zbiórka 19:50"
-                    print(f"Wygenerowany tytuł dla {channel_name}: {title}")
+                    print(f"-> Tytuł: {title}")
                     
                     view = PollView()
                     embed = view.generate_embed(title)
@@ -133,24 +133,23 @@ async def create_weekly_polls():
                     content = f"📢 **Nowa ankieta!** {ping_text}" if ping_text else "📢 **Nowa ankieta!**"
 
                     await channel.send(content=content, embed=embed, view=view)
-                    await asyncio.sleep(2)
+                    await asyncio.sleep(1)
                 except Exception as e:
                     print(f"BŁĄD na kanale {channel.name}: {e}")
 
 @bot.tree.command(name="ankiety", description="Tworzy nowe ankiety z podziałem na rangi i datami")
 async def ankiety(interaction: discord.Interaction):
+    print(">>> [KOMENDA] Wywołano komendę /ankiety przez użytkownika!")
     await interaction.response.send_message("Tworzę nowe ankiety z aktualnymi datami...", ephemeral=True)
     await create_weekly_polls()
 
 @bot.event
 async def on_ready():
-    MY_GUILD = discord.Object(id=813517961624158249)
     try:
-        bot.tree.copy_global_to(guild=MY_GUILD)
-        synced = await bot.tree.sync(guild=MY_GUILD)
-        print(f"Zsynchronizowano pomyślnie {len(synced)} komend(y) dla serwera.")
+        synced = await bot.tree.sync()
+        print(f"Zsynchronizowano globalnie pomyślnie {len(synced)} komend(y).")
     except Exception as e:
-        print(e)
+        print(f"Błąd synchronizacji: {e}")
         
     print(f"Zalogowano pomyślnie jako {bot.user}")
     
